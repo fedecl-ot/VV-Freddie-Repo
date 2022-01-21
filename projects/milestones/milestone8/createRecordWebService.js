@@ -24,18 +24,18 @@ module.exports.main = async function (ffCollection, vvClient, response) {
                     outputCollection[1]: Short description message
                     outputCollection[2]: Data
     Psuedo code: 
-              1° Get form.
-              2° Verify if form has data.
-              3° Save form field control values.
-              4° Create new form record with saved form field control values.
-              5° Save form record ID.
-              6° Send response.
+              1° Get current form.
+              2° Save current form field control values.
+              3° Create new form record with saved form field control values.
+              4° Save new form record ID to update new form field control values.
+              5° Send response to client.
 
     Date of Dev:   01/19/2022
-    Last Rev Date: 
+    Last Rev Date: 01/21/2022
 
     Revision Notes:
-     01/19/2022 - FEDERICO CUELHO:  First Setup of the script
+     01/19/2022 - FEDERICO CUELHO:  First Setup of the script.
+     01/21/2022 - FEDERICO CUELHO:  Comments correction and redundant code fixes.
     */
 
     logger.info('Start of the process Milestone8 at ' + Date());
@@ -45,9 +45,10 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     ***************************************/
 
     // Response array to be returned
-    let outputCollection = [];
+    var outputCollection = [];
+
     // Array for capturing error messages that may occur during the process
-    let errorLog = [];
+    var errorLog = [];
 
     /***********************
      Configurable Variables
@@ -59,6 +60,9 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     /*****************
      Script Variables
     ******************/
+
+    // Describes the process being checked using the parsing and checking helper functions
+    var shortDescription = '';
 
     /*****************
      Helper Functions
@@ -163,69 +167,63 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     **********/
 
     try {
-        // 1.GET FORM
-        let shortDescription = `Get form ${templateName}`;
+        // 1.GET CURRENT FORM
+        shortDescription = `Get form ${templateName}`;
 
-        let getFormsParams = {
+        var getFormsParams = {
             q: ``,
             expand: true, // true to get all the form's fields
-            // fields: 'id,name', // to get only the fields 'id' and 'name'
         };
 
         const getFormsRes = await vvClient.forms
             .getForms(getFormsParams, templateName)
             .then((res) => parseRes(res))
             .then((res) => checkMetaAndStatus(res, shortDescription))
-            .then((res) => checkDataPropertyExists(res, shortDescription));
-        //  .then((res) => checkDataIsNotEmpty(res, shortDescription));
-        //  If you want to throw an error and stop the process if no data is returned, uncomment the line above
+            .then((res) => checkDataPropertyExists(res, shortDescription))
+            .then((res) => checkDataIsNotEmpty(res, shortDescription));
 
-        // 2.CHECKS IF THE FORM IS PRESENT TO SAVE FORM FIELD CONTROL VALUES
-        if (getFormsRes.data.length == 0) {
-            outputCollection[0] = 'Error';
-            outputCollection[1] = 'Form not found';
-        } else {
-            const firstName = getFormsRes.data[0].name;
-            const lastName = getFormsRes.data[0].lastname;
+        // 2.SAVES CURRENT FORM CONTROL FIELD VALUES
+        const firstName = getFormsRes.data[0].name;
+        const lastName = getFormsRes.data[0].lastname;
 
-            // 3.CREATES NEW OBJECT WITH SAVED FIELD CONTROL VALUES
-            const newFormData = {
-                Name: firstName,
-                Lastname: lastName,
-            };
-            shortDescription = 'New Form Creation Execution';
+        // CREATES NEW OBJECT WITH SAVED FIELD CONTROL VALUES
+        const newFormData = {
+            Name: firstName,
+            Lastname: lastName,
+        };
+        shortDescription = 'New Form Creation Execution';
 
-            // 4.CREATES NEW FORM RECORD WITH Milestone8 FORM RECORD FIELD CONTROL VALUES
-            const postNewFormRecord = await vvClient.forms
-                .postForms(null, newFormData, newFormTemplateName)
-                .then((res) => parseRes(res))
-                .then((res) => checkMetaAndStatus(res, shortDescription))
-                .then((res) => checkDataPropertyExists(res, shortDescription))
-                .then((res) => checkDataIsNotEmpty(res, shortDescription));
-            console.log(postNewFormRecord);
+        // 3.CREATES NEW FORM RECORD WITH Milestone8 FORM RECORD FIELD CONTROL VALUES
+        const postNewFormRecord = await vvClient.forms
+            .postForms(null, newFormData, newFormTemplateName)
+            .then((res) => parseRes(res))
+            .then((res) => checkMetaAndStatus(res, shortDescription))
+            .then((res) => checkDataPropertyExists(res, shortDescription))
+            .then((res) => checkDataIsNotEmpty(res, shortDescription));
 
-            // 5.SAVES NEW FORM RECORD ID TO UPDATE FORM FIELD CONTROL VALUES
-            const newFormId = postNewFormRecord.data.instanceName;
+        // 4.SAVES NEW FORM RECORD ID TO UPDATE NEW FORM FIELD CONTROL VALUES
+        const newFormId = postNewFormRecord.data.instanceName;
 
-            // 6.BUILDS THE SUCCESS RESPONSE ARRAY
-            outputCollection[0] = 'Success';
-            outputCollection[1] = 'Form record created';
-            outputCollection[2] = newFormId;
-        }
+        // 5.BUILDS THE SUCCESS RESPONSE ARRAY
+        outputCollection[0] = 'Success';
+        outputCollection[1] = 'Form record created';
+        outputCollection[2] = newFormId;
     } catch (error) {
         logger.info('Error encountered' + error);
 
         // BUILDS THE ERROR RESPONSE ARRAY
+
+        outputCollection[0] = 'Error';
+
         if (errorLog.length > 0) {
-            outputCollection[0] = 'Error';
             outputCollection[1] = 'Errors encountered';
             outputCollection[2] = `Error/s: ${errorLog.join('; ')}`;
         } else {
-            outputCollection[0] = 'Error';
-            outputCollection[1] = 'Unhandeled error occurred ' + error;
+            outputCollection[1] = error.message ? error.message : `Unhandled error occurred: ${error}`;
         }
     } finally {
         // SENDS THE RESPONSE
+
         response.json(200, outputCollection);
     }
 };

@@ -23,18 +23,18 @@ module.exports.main = async function (ffCollection, vvClient, response) {
                     outputCollection[1]: Short description message
     Psuedo code: 
               1° Get updated form field control values.
-              2° Verify if form control values are present.
-              3° Get the form record to update.
-              4° Save form revision ID from form record to update.
-              5° Save updated form field control values.
-              6° Update form record with updated field control values.
-              7° Send response.
+              2° Get the form record to update.
+              3° Save form revision ID from form record to update.
+              4° Save updated form field control values.
+              5° Update form record with updated field control values.
+              6° Send response to client.
 
     Date of Dev:   01/19/2022
-    Last Rev Date: 
+    Last Rev Date: 01/21/2022
 
     Revision Notes:
-     01/19/2022 - FEDERICO CUELHO:  First Setup of the script
+     01/19/2022 - FEDERICO CUELHO:  First Setup of the script.
+     01/21/2022 - FEDERICO CUELHO:  Comments correction and redundant code fixes.
     */
 
     logger.info('Start of the process Milestone8DataReq at ' + Date());
@@ -44,9 +44,9 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     ***************************************/
 
     // Response array to be returned
-    let outputCollection = [];
+    var outputCollection = [];
     // Array for capturing error messages that may occur during the process
-    let errorLog = [];
+    var errorLog = [];
 
     /***********************
      Configurable Variables
@@ -59,7 +59,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     ******************/
 
     // Describes the process being checked using the parsing and checking helper functions
-    let shortDescription = '';
+    var shortDescription = '';
 
     /*****************
      Helper Functions
@@ -209,7 +209,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
         const lastName = getFieldValueByName('lastName');
         const formID = getFieldValueByName('formID');
 
-        // 2.CHECKS IF THE REQUIRED PARAMENTERS ARE PRESENT
+        // CHECKS IF REQUIRED PARAMENTERS ARE PRESENT
         if (!name || !lastName || !formID) {
             // It could be more than one error, so we need to send all of them in one response
             throw new Error(errorLog.join('; '));
@@ -217,11 +217,10 @@ module.exports.main = async function (ffCollection, vvClient, response) {
 
         shortDescription = `Get form ${formID}`;
 
-        // 3.GET THE FORM TO UPDATE FIELD CONTROL VALUES
-        let getFormsParams = {
+        // 2.GET THE NEW FORM TO UPDATE FIELD CONTROL VALUES
+        var getFormsParams = {
             q: `[instanceName] eq '${formID}'`,
-            expand: true, // true to get all the form's fields
-            // fields: 'id,name', // to get only the fields 'id' and 'name'
+            expand: true, // true to get all form fields
         };
 
         const getFormsRes = await vvClient.forms
@@ -230,30 +229,27 @@ module.exports.main = async function (ffCollection, vvClient, response) {
             .then((res) => checkMetaAndStatus(res, shortDescription))
             .then((res) => checkDataPropertyExists(res, shortDescription))
             .then((res) => checkDataIsNotEmpty(res, shortDescription));
-        //  If you want to throw an error and stop the process if no data is returned, uncomment the line above
-        console.log(getFormsRes);
 
-        // 4.SAVES THE FORM REVISION ID TO UPDATE THE NEW FORM RECORD
+        // 3.SAVES THE FORM REVISION ID TO UPDATE THE NEW FORM RECORD
         const formGUID = getFormsRes.data[0].revisionId;
 
         shortDescription = `Update form ${formGUID}`;
-        // 5.CREATES NEW OBJECT WITH UPDATED SAVED FORM CONTROL VALUES
+        // 4.CREATES NEW OBJECT WITH UPDATED SAVED FORM CONTROL VALUES
         const formFieldsToUpdate = {
             Firstname: name,
             Lastname: lastName,
             DateStamp: new Date(),
         };
 
-        // 6.UPDATES FIELD CONTROL VALUES ON NEW FORM RECORD
-        const postFormRevRes = await vvClient.forms
+        // 5.UPDATES FIELD CONTROL VALUES ON NEW FORM RECORD
+        await vvClient.forms
             .postFormRevision(null, formFieldsToUpdate, newFormTemplateName, formGUID)
             .then((res) => parseRes(res))
             .then((res) => checkMetaAndStatus(res, shortDescription))
             .then((res) => checkDataPropertyExists(res, shortDescription))
             .then((res) => checkDataIsNotEmpty(res, shortDescription));
-        console.log(postFormRevRes);
 
-        // 7.BUILD THE SUCCESS RESPONSE ARRAY
+        // 6.BUILD THE SUCCESS RESPONSE ARRAY
         outputCollection[0] = 'Success';
         outputCollection[1] = 'Form record updated.';
     } catch (error) {
@@ -261,13 +257,13 @@ module.exports.main = async function (ffCollection, vvClient, response) {
 
         // BUILDS THE ERROR RESPONSE ARRAY
 
+        outputCollection[0] = 'Error';
+
         if (errorLog.length > 0) {
-            outputCollection[0] = 'Error';
             outputCollection[1] = 'Errors encountered';
             outputCollection[2] = `Error/s: ${errorLog.join('; ')}`;
         } else {
-            outputCollection[0] = 'Error';
-            outputCollection[1] = 'Unhandeled error occurred ' + error;
+            outputCollection[1] = error.message ? error.message : `Unhandled error occurred: ${error}`;
         }
     } finally {
         // SENDS THE RESPONSE

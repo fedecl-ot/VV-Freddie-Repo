@@ -10,13 +10,6 @@ function CallServerSide() {
     // Get all the form fields data
     var formData = VV.Form.getFormDataCollection();
 
-    // Uncomment the following to add more data to the formData object.
-    // var moreData = {
-    //    name: 'This is the name you will use on getFieldValueByName',
-    //    value: "Here goes the value"
-    // };
-    // formData.push(moreData);
-
     // Parse the data as a JSON string
     var data = JSON.stringify(formData);
 
@@ -85,5 +78,4 @@ $.when(CallServerSide())
     })
     .then(function () {
         VV.Form.Global.DisplayMessaging(message, formName);
-        VV.Form.HideLoadingPanel();
     });
