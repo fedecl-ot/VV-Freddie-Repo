@@ -126,3 +126,4 @@ $RECYCLE.BIN/
 node_modules/
 lib/VVRestApi/VVRestApiNodeJS/node_modules/
 scripts/test-scripts
+.vscode
