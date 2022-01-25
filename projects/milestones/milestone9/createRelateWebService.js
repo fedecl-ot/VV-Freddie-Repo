@@ -25,17 +25,18 @@ module.exports.main = async function (ffCollection, vvClient, response) {
                     outputCollection[2]: currentFormId
                     outputCollection[3]: newFormRevisionId
     Psuedo code: 
-              1° Get current form.
+              1° Get current form field values.
               2° Save form field control values.
               3° Create new form record with saved form field control values.
               4° Save form record ID.
               5° Send response to client.
 
-    Date of Dev:   01/21/2022
-    Last Rev Date: 
+    Date of Dev:    01/21/2022
+    Last Rev Date:  01/25/2022
 
     Revision Notes:
-     01/21/2022 - FEDERICO CUELHO:  First Setup of the script
+     01/21/2022 - FEDERICO CUELHO:  First Setup of the script.
+     01/25/2022 - FEDERICO CUELHO:  Fix code structure and added client-side validation.
     */
 
     logger.info('Start of the process Milestone8 at ' + Date());
@@ -53,7 +54,6 @@ module.exports.main = async function (ffCollection, vvClient, response) {
      Configurable Variables
     ************************/
 
-    const currentTemplateName = 'Milestone9';
     const newFormTemplateName = 'Milestone9Related';
 
     /*****************
@@ -66,6 +66,45 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     /*****************
      Helper Functions
     ******************/
+    function getFieldValueByName(fieldName, isRequired = true) {
+        /*
+        Check if a field was passed in the request and get its value
+        Parameters:
+            fieldName: The name of the field to be checked
+            isRequired: If the field is required or not
+        */
+
+        let resp = null;
+
+        try {
+            // Tries to get the field from the passed in arguments
+            const field = ffCollection.getFormFieldByName(fieldName);
+
+            if (!field) {
+                throw new Error(`The field '${fieldName}' was not found.`);
+            } else {
+                // If the field was found, get its value
+                let fieldValue = field.value ? field.value : null;
+
+                if (typeof fieldValue === 'string') {
+                    // Remove any leading or trailing spaces
+                    fieldValue.trim();
+                }
+
+                if (fieldValue) {
+                    // Sets the field value to the response
+                    resp = fieldValue;
+                } else if (isRequired) {
+                    // If the field is required and has no value, throw an error
+                    throw new Error(`The value property for the field '${fieldName}' was not found or is empty.`);
+                }
+            }
+        } catch (error) {
+            // If an error was thrown, add it to the error log
+            errorLog.push(error);
+        }
+        return resp;
+    }
 
     function parseRes(vvClientRes) {
         /*
@@ -166,27 +205,18 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     **********/
 
     try {
-        // 1.GET CURRENT FORM
-        shortDescription = `Get form ${currentTemplateName}`;
+        // 1.GET AND SAVES FORM FIELD CONTROL VALUES
+        const firstName = getFieldValueByName('Name');
+        const lastName = getFieldValueByName('Lastname');
+        const currentFormId = getFieldValueByName('formId');
 
-        var getFormsParams = {
-            q: ``,
-            expand: true, // true to get all the form's fields
-        };
+        // CHECKS IF REQUIRED PARAMENTERS ARE PRESENT
+        if (!firstName || !lastName || !currentFormId) {
+            // It could be more than one error, so we need to send all of them in one response
+            throw new Error(errorLog.join('; '));
+        }
 
-        const getFormsRes = await vvClient.forms
-            .getForms(getFormsParams, currentTemplateName)
-            .then((res) => parseRes(res))
-            .then((res) => checkMetaAndStatus(res, shortDescription))
-            .then((res) => checkDataPropertyExists(res, shortDescription))
-            .then((res) => checkDataIsNotEmpty(res, shortDescription));
-
-        // 2.SAVES FORM FIELD CONTROL VALUES
-        const firstName = getFormsRes.data[0].name;
-        const lastName = getFormsRes.data[0].lastname;
-        const currentFormId = getFormsRes.data[0].formId;
-
-        // 3.CREATES NEW OBJECT WITH SAVED FIELD CONTROL VALUES
+        // 2.CREATES NEW OBJECT WITH SAVED FIELD CONTROL VALUES
         const newFormData = {
             Name: firstName,
             Lastname: lastName,
@@ -194,7 +224,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
         };
         shortDescription = 'New Form Creation Execution';
 
-        // 4.CREATES NEW FORM RECORD WITH Milestone8 FORM RECORD FIELD CONTROL VALUES
+        // 3.CREATES NEW FORM RECORD WITH Milestone8 FORM RECORD FIELD CONTROL VALUES
         const postNewFormRecord = await vvClient.forms
             .postForms(null, newFormData, newFormTemplateName)
             .then((res) => parseRes(res))
@@ -202,16 +232,16 @@ module.exports.main = async function (ffCollection, vvClient, response) {
             .then((res) => checkDataPropertyExists(res, shortDescription))
             .then((res) => checkDataIsNotEmpty(res, shortDescription));
 
-        // 5.SAVES NEW FORM REVISION ID TO UPDATE FORM FIELD CONTROL VALUES
+        // 4.SAVES NEW FORM REVISION ID TO UPDATE FORM FIELD CONTROL VALUES
         const newFormRevisionId = postNewFormRecord.data.revisionId;
 
-        // 6.RELATES CURRENT FORM RECORD WITH NEW FORM RECORD
+        // 5.RELATES CURRENT FORM RECORD WITH NEW FORM RECORD
         await vvClient.forms
             .relateFormByDocId(newFormRevisionId, currentFormId)
             .then((res) => parseRes(res))
             .then((res) => checkMetaAndStatus(res, shortDescription));
 
-        // 7.BUILDS THE SUCCESS RESPONSE ARRAY
+        // 6.BUILDS THE SUCCESS RESPONSE ARRAY
         outputCollection[0] = 'Success';
         outputCollection[1] = 'Form record created and related';
         outputCollection[2] = newFormRevisionId;
