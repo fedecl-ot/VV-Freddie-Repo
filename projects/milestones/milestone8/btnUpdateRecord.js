@@ -4,13 +4,14 @@ var webSeviceName = 'updateRecordWebService';
 var formName = 'Milestone8';
 var message; // the message is set below
 
+//Show VV spinner logo.
 VV.Form.ShowLoadingPanel();
 
 function CallServerSide() {
-    // Get all the form fields data
+    // Get all the form fields data.
     var formData = VV.Form.getFormDataCollection();
 
-    // Parse the data as a JSON string
+    // Parse the data as a JSON string.
     var data = JSON.stringify(formData);
 
     var requestObject = $.ajax({
@@ -56,6 +57,8 @@ $.when(CallServerSide())
                             if (resp.data[0] == 'Success') {
                                 //Saves the updated form record.
                                 VV.Form.DoAjaxFormSave();
+
+                                //Hide VV spinner logo.
                                 VV.Form.HideLoadingPanel();
                             }
                         }
@@ -77,5 +80,6 @@ $.when(CallServerSide())
         }
     })
     .then(function () {
+        //Show msj modal.
         VV.Form.Global.DisplayMessaging(message, formName);
     });

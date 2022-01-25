@@ -4,13 +4,14 @@ var webSeviceName = 'createRecordWebService';
 var formName = 'Milestone8';
 var message; // the message is set below
 
+//Show VV spinner logo.
 VV.Form.ShowLoadingPanel();
 
 function CallServerSide() {
-    // Get all the form fields data
+    // Get all the form fields data.
     var formData = VV.Form.getFormDataCollection();
 
-    // Parse the data as a JSON string
+    // Parse the data as a JSON string.
     var data = JSON.stringify(formData);
 
     var requestObject = $.ajax({
@@ -82,6 +83,9 @@ VV.Form.DoAjaxFormSave()
         });
     })
     .then(function () {
+        //Show msj modal.
         VV.Form.Global.DisplayMessaging(message, formName);
+
+        //Hide VV spinner logo.
         VV.Form.HideLoadingPanel();
     });
