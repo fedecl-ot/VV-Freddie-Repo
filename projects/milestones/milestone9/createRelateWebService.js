@@ -17,7 +17,6 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     Customer:       N/A
     Purpose:        Create and relate a new form record from Milestone9Related form template with Milestone9 form record.
     Parameters:     The following represent variables passed into the function:
-                    templateName: Form template used to create new form record on a different template.
                     newFormTemplateName: Form template used to create new form record.
     Return Object:
                     outputCollection[0]: Status
