@@ -4,10 +4,10 @@ module.exports.getCredentials = function () {
     var options = {};
     options.customerAlias = 'Freddie';
     options.databaseAlias = 'Main';
-    options.userId = 'federico.cuelho@onetree.com';
-    options.password = '$63tQGM8$n#cwAse$hh9';
-    options.clientId = '5154f244-dcd3-4b27-ad97-a52579f42bfd';
-    options.clientSecret = 'tM/2PozM3S+rg3c/jCnDXofg7lZhd4PQmgRRZaS3AAg=';
+    options.userId = 'freddie.API';
+    options.password = 'Federico41';
+    options.clientId = '24209932-7733-490c-8b00-0bf0c69759c4';
+    options.clientSecret = '9ulj97b5CH0ygeT0xP3Bs//QdyQ5pvB4fBE4LiNpcH0=';
     return options;
 };
 
