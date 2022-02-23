@@ -1,4 +1,4 @@
-// AUX FUNCTION TO SEND AN EMAIL NOTIFICATION AFTER A SCHEDULED PROCESS IS EXECUTED.
+// AUXILIARY FUNCTION TO SEND AN EMAIL NOTIFICATION AFTER A SCHEDULED PROCESS IS EXECUTED WITH THE PROCESS RESULT AND ERROR LOG SUMMARY.
 
 // Place all variables within the 'Configurable Variables' section.
 const scheduledProcessName = 'scheduledProcessAsyncFreddie';
@@ -18,6 +18,36 @@ let emailList = '';
 
 // Place this in the 'Helper Functions' section.
 async function sendEmailNotification(processStatusMsj) {
+    /*
+      Script Name:   sendEmailNotification
+      Customer:      N/A
+      Purpose:       Auxiliary function intended to be used in Scheduled Processes to send an email with a summary of the process result and error logs.
+      Parameters:    The following are parameters that need to be passed into this auxiliary script.
+                     processStatusMsj - Process status message shown within the email body.
+ 
+      Return Object:
+                     - N/A.
+      Psuedo code:
+                     1. Call LibGroupGetGroupUserEmails library to fetch VaultAcces user group data.
+                     2. Loop every user data to get their email addresses to save it as a string of emails.
+                     3. Check for errors within the log.
+                     4. Determine email recipients.
+                     5. Build email structure.
+                     6. Send email.
+ 
+      Date of Dev:   02/22/2022
+      Last Rev Date: 02/23/2022
+ 
+      Revision Notes:
+      02/22/2022 - FEDERICO CUELHO:     First Setup of the script.
+      02/22/2022 - FEDERICO CUELHO:     - Added comments.
+                                        - Added parsing and error handling functions.
+                                        - Replace the for iteration for a map function.
+                                        - Relocated variables.
+                                        - Modified chained variables into single variable declarations.
+                                        - Modified email subject structure.
+     */
+
     logger.info('Entered sendEmailNotification process.');
 
     // Get scheduled process execution date and time.
@@ -35,7 +65,7 @@ async function sendEmailNotification(processStatusMsj) {
         },
     ];
 
-    // FETCH THE GROUP USERS' EMAILS.
+    // FETCH THE GROUP USER DATA.
     const resVisualAccessUsers = await vvClient.scripts
         .runWebService('LibGroupGetGroupUserEmails', groupsParamObj)
         .then((res) => parseRes(res, shortDescription))
@@ -43,7 +73,7 @@ async function sendEmailNotification(processStatusMsj) {
         .then((res) => checkDataPropertyExists(res, shortDescription))
         .then((res) => checkDataIsNotEmpty(res, shortDescription));
 
-    // LOOPS EVERY USER TO GET THEIR EMAIL ADDRESSES TO SAVE IT AS A STRING OF EMAILS.
+    // LOOPS EVERY USER  DATA TO GET THEIR EMAIL ADDRESSES TO SAVE IT AS A STRING OF EMAILS.
     resVisualAccessUsers.data[2].map(async (userData) => {
         emailList += userData['emailAddress'] + ',';
     });
