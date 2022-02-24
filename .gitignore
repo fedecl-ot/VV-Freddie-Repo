@@ -127,3 +127,7 @@ node_modules/
 lib/VVRestApi/VVRestApiNodeJS/node_modules/
 scripts/test-scripts
 .vscode
+.eslintrc.json
+.prettierrc
+.package.json
+.package-lock.json
