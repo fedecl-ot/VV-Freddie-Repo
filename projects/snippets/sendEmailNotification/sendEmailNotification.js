@@ -10,8 +10,8 @@ const scheduledProcessName = 'scheduledProcessAsyncFreddie';
 // Email addresses list to send notification.
 const testEmailList = 'email1@gmail.com, email2@gmail.com';
 
-// On 'true' sends the notification to all VaultAccess users email addresses.
-const useTestEmails = false;
+// On 'false' sends the notification to all VaultAccess users email addresses.
+const useTestEmailsList = true;
 
 // List of email recipients to send email.
 let emailList = '';
@@ -36,7 +36,7 @@ async function sendEmailNotification(processStatusMsj) {
                      6. Send email.
  
       Date of Dev:   02/22/2022
-      Last Rev Date: 02/23/2022
+      Last Rev Date: 02/24/2022
  
       Revision Notes:
       02/22/2022 - FEDERICO CUELHO:     First Setup of the script.
@@ -46,6 +46,10 @@ async function sendEmailNotification(processStatusMsj) {
                                         - Relocated variables.
                                         - Modified chained variables into single variable declarations.
                                         - Modified email subject structure.
+
+      02/24/2022 - FEDERICO CUELHO:     - Modified boolean logic on useTestEmailsList for better reading.
+                                        - Added condition to execute LibGroupGetGroupUserEmails ws.
+                                        - Set groupsParamObj as constant.
      */
 
     logger.info('Entered sendEmailNotification process.');
@@ -58,20 +62,22 @@ async function sendEmailNotification(processStatusMsj) {
     let emailData = {};
 
     // Group of users to get email addresses.
-    let groupsParamObj = [
+    const groupsParamObj = [
         {
             name: 'groups',
             value: ['VaultAccess'],
         },
     ];
 
-    // FETCH THE GROUP USER DATA.
-    const resVisualAccessUsers = await vvClient.scripts
-        .runWebService('LibGroupGetGroupUserEmails', groupsParamObj)
-        .then((res) => parseRes(res, shortDescription))
-        .then((res) => checkMetaAndStatus(res, shortDescription))
-        .then((res) => checkDataPropertyExists(res, shortDescription))
-        .then((res) => checkDataIsNotEmpty(res, shortDescription));
+    // FETCH THE GROUP USER DATA WHEN NOT USING testEmailList.
+    if (!useTestEmailsList) {
+        const resVisualAccessUsers = await vvClient.scripts
+            .runWebService('LibGroupGetGroupUserEmails', groupsParamObj)
+            .then((res) => parseRes(res, shortDescription))
+            .then((res) => checkMetaAndStatus(res, shortDescription))
+            .then((res) => checkDataPropertyExists(res, shortDescription))
+            .then((res) => checkDataIsNotEmpty(res, shortDescription));
+    }
 
     // LOOPS EVERY USER  DATA TO GET THEIR EMAIL ADDRESSES TO SAVE IT AS A STRING OF EMAILS.
     resVisualAccessUsers.data[2].map(async (userData) => {
@@ -89,10 +95,10 @@ async function sendEmailNotification(processStatusMsj) {
     }
 
     // DETERMINES EMAIL RECIPIENTS.
-    if (useTestEmails) {
-        emailList = emailData.recipients;
-    } else {
+    if (useTestEmailsList) {
         emailList = testEmailList;
+    } else {
+        emailList = emailData.recipients;
     }
 
     // BUILDS EMAIL STRUCTURE.
