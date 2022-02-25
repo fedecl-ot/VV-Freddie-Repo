@@ -37,8 +37,9 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     logger.info('Start of the process Milestone10 at ' + Date());
 
     /**********************
-   Configurable Variables
-  ***********************/
+     Configurable Variables
+    ***********************/
+
     //Template ID
     let TemplateID = 'Milestone10';
 
@@ -54,6 +55,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     /*********************
      Form Record Variables
     **********************/
+
     //Create variables for the values on the form record
     var name = getFieldValueByName('Name');
     var lastName = getFieldValueByName('Lastname');
@@ -67,6 +69,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     /****************
      Helper Functions
     *****************/
+
     // Check if field object has a value property and that value is truthy before returning value.
     function getFieldValueByName(fieldName, isOptional) {
         try {
@@ -102,7 +105,6 @@ module.exports.main = async function (ffCollection, vvClient, response) {
         }
         return vvClientRes;
     }
-
     function checkMetaAndStatus(vvClientRes, shortDescription, ignoreStatusCode = 999) {
         /*
     Checks that the meta property of a vvCliente API response object has the expected status code
@@ -124,7 +126,6 @@ module.exports.main = async function (ffCollection, vvClient, response) {
         }
         return vvClientRes;
     }
-
     function checkDataPropertyExists(vvClientRes, shortDescription, ignoreStatusCode = 999) {
         /*
     Checks that the data property of a vvCliente API response object exists 
@@ -144,7 +145,6 @@ module.exports.main = async function (ffCollection, vvClient, response) {
 
         return vvClientRes;
     }
-
     function checkDataIsNotEmpty(vvClientRes, shortDescription, ignoreStatusCode = 999) {
         /*
     Checks that the data property of a vvCliente API response object is not empty
@@ -179,8 +179,8 @@ module.exports.main = async function (ffCollection, vvClient, response) {
 
     try {
         /****************
-     BEGIN ASYNC CODE
-    *****************/
+        BEGIN ASYNC CODE
+        *****************/
 
         //1. Builds query formatted variables.
         let uniqueRecordArr = [

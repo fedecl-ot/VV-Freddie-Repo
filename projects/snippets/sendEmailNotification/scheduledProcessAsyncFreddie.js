@@ -97,7 +97,6 @@ module.exports.main = async function (vvClient, response, token) {
         }
         return vvClientRes;
     }
-
     function checkMetaAndStatus(vvClientRes, shortDescription, ignoreStatusCode = 999) {
         /*
         Checks that the meta property of a vvCliente API response object has the expected status code
@@ -119,7 +118,6 @@ module.exports.main = async function (vvClient, response, token) {
         }
         return vvClientRes;
     }
-
     function checkDataPropertyExists(vvClientRes, shortDescription, ignoreStatusCode = 999) {
         /*
         Checks that the data property of a vvCliente API response object exists 
@@ -139,7 +137,6 @@ module.exports.main = async function (vvClient, response, token) {
 
         return vvClientRes;
     }
-
     function checkDataIsNotEmpty(vvClientRes, shortDescription, ignoreStatusCode = 999) {
         /*
         Checks that the data property of a vvCliente API response object is not empty
@@ -190,7 +187,7 @@ module.exports.main = async function (vvClient, response, token) {
                      6. Send email.
  
       Date of Dev:   02/22/2022
-      Last Rev Date: 02/24/2022
+      Last Rev Date: 02/25/2022
  
       Revision Notes:
       02/22/2022 - FEDERICO CUELHO:     First Setup of the script.
@@ -204,6 +201,11 @@ module.exports.main = async function (vvClient, response, token) {
       02/24/2022 - FEDERICO CUELHO:     - Modified boolean logic on useTestEmailsList for better reading.
                                         - Added condition to execute LibGroupGetGroupUserEmails ws.
                                         - Set groupsParamObj as constant.
+
+      02/25/2022 - FEDERICO CUELHO:     - Relocated map function.
+                                        - Added shortDescription msjs on helper functions.
+                                        - Deleted unnecesary else clause and emailData variable.
+                                        
      */
 
         logger.info('Entered sendEmailNotification process.');
@@ -211,9 +213,6 @@ module.exports.main = async function (vvClient, response, token) {
         // Get scheduled process execution date and time.
         const localISODate = new Date().toISOString().substring(0, 10);
         const localTime = new Date().toTimeString();
-
-        // Email structure obj.
-        let emailData = {};
 
         // Group of users to get email addresses.
         const groupsParamObj = [
@@ -224,6 +223,8 @@ module.exports.main = async function (vvClient, response, token) {
         ];
 
         // FETCH THE GROUP USER DATA WHEN NOT USING testEmailList.
+        shortDescription = `Run Web Service: LibGroupGetGroupUserEmails`;
+
         if (!useTestEmailsList) {
             const resVisualAccessUsers = await vvClient.scripts
                 .runWebService('LibGroupGetGroupUserEmails', groupsParamObj)
@@ -231,12 +232,12 @@ module.exports.main = async function (vvClient, response, token) {
                 .then((res) => checkMetaAndStatus(res, shortDescription))
                 .then((res) => checkDataPropertyExists(res, shortDescription))
                 .then((res) => checkDataIsNotEmpty(res, shortDescription));
-        }
 
-        // LOOPS EVERY USER  DATA TO GET THEIR EMAIL ADDRESSES TO SAVE IT AS A STRING OF EMAILS.
-        resVisualAccessUsers.data[2].map(async (userData) => {
-            emailList += userData['emailAddress'] + ',';
-        });
+            // LOOPS EVERY USER  DATA TO GET THEIR EMAIL ADDRESSES TO SAVE IT AS A STRING OF EMAILS.
+            resVisualAccessUsers.data[2].map(async (userData) => {
+                emailList += userData['emailAddress'] + ',';
+            });
+        }
 
         // Error variable.
         let errorItem = '';
@@ -251,8 +252,6 @@ module.exports.main = async function (vvClient, response, token) {
         // DETERMINES EMAIL RECIPIENTS.
         if (useTestEmailsList) {
             emailList = testEmailList;
-        } else {
-            emailList = emailData.recipients;
         }
 
         // BUILDS EMAIL STRUCTURE.
@@ -281,6 +280,8 @@ module.exports.main = async function (vvClient, response, token) {
         };
 
         // SENDS EMAIL.
+        shortDescription = `Email sent successfully to: ${emailList}`;
+
         await vvClient.email
             .postEmails(null, emailObj)
             .then((res) => parseRes(res))
