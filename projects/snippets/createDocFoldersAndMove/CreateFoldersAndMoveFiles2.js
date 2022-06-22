@@ -462,7 +462,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
             folderId: newFolderId
             };
 
-            const moveDocResp = await vvClient.documents.moveDocument(null, moveDocumentData, document.documentId);
+            await vvClient.documents.moveDocument(null, moveDocumentData, document.documentId);
         
         }));
 
