@@ -58,8 +58,8 @@ module.exports.main = async function (vvClient, response, token) {
     // Email addresses list to send notification.
     const testEmailList = 'email1@gmail.com, email2@gmail.com';
 
-    // On 'true' sends the notification to all VaultAccess users email addresses.
-    const useTestEmails = false;
+    // On 'false' sends the notification to all VaultAccess users email addresses.
+    const useTestEmailsList = true;
 
     // List of email recipients to send email.
     let emailList = '';
@@ -96,7 +96,6 @@ module.exports.main = async function (vvClient, response, token) {
         }
         return vvClientRes;
     }
-
     function checkMetaAndStatus(vvClientRes, shortDescription, ignoreStatusCode = 999) {
         /*
         Checks that the meta property of a vvCliente API response object has the expected status code
@@ -118,7 +117,6 @@ module.exports.main = async function (vvClient, response, token) {
         }
         return vvClientRes;
     }
-
     function checkDataPropertyExists(vvClientRes, shortDescription, ignoreStatusCode = 999) {
         /*
         Checks that the data property of a vvCliente API response object exists 
@@ -138,7 +136,6 @@ module.exports.main = async function (vvClient, response, token) {
 
         return vvClientRes;
     }
-
     function checkDataIsNotEmpty(vvClientRes, shortDescription, ignoreStatusCode = 999) {
         /*
         Checks that the data property of a vvCliente API response object is not empty
@@ -207,11 +204,8 @@ module.exports.main = async function (vvClient, response, token) {
         const localISODate = new Date().toISOString().substring(0, 10);
         const localTime = new Date().toTimeString();
 
-        // Email structure obj.
-        let emailData = {};
-
         // Group of users to get email addresses.
-        let groupsParamObj = [
+        const groupsParamObj = [
             {
                 name: 'groups',
                 value: ['VaultAccess'],
@@ -242,9 +236,7 @@ module.exports.main = async function (vvClient, response, token) {
         }
 
         // DETERMINES EMAIL RECIPIENTS.
-        if (useTestEmails) {
-            emailList = emailData.recipients;
-        } else {
+        if (useTestEmailsList) {
             emailList = testEmailList;
         }
 
@@ -274,6 +266,8 @@ module.exports.main = async function (vvClient, response, token) {
         };
 
         // SENDS EMAIL.
+        shortDescription = `Email sent successfully to: ${emailList}`;
+
         await vvClient.email
             .postEmails(null, emailObj)
             .then((res) => parseRes(res))
