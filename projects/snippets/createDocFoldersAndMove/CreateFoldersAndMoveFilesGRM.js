@@ -1,15 +1,15 @@
-const logger = require("../log");
+const logger = require('../log');
 
 module.exports.getCredentials = function () {
     var options = {};
-        options.customerAlias = "SATrainingMarch2022";
-        options.databaseAlias = "Main";
-        options.userId = "training.api";
-        options.password = "p";
-        options.clientId = "bafd938d-6864-472c-9309-2b515bbf1007";
-        options.clientSecret = "rbQR7pXabAUts/lp5sczrbb5C2L/kF4EcOdF+OkPg68=";
-        return options;
-    };
+    options.customerAlias = 'SATrainingMarch2022';
+    options.databaseAlias = 'Main';
+    options.userId = 'training.api';
+    options.password = 'p';
+    options.clientId = 'bafd938d-6864-472c-9309-2b515bbf1007';
+    options.clientSecret = 'rbQR7pXabAUts/lp5sczrbb5C2L/kF4EcOdF+OkPg68=';
+    return options;
+};
 
 module.exports.main = async function (ffCollection, vvClient, response) {
     /* 
@@ -40,7 +40,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     06/21/2022 - Federico Cuelho: Modified to create folders and move docs into created folders.
     */
 
-    logger.info("Start of the process CreateFoldersAndMoveFiles at ", Date());
+    logger.info('Start of the process CreateFoldersAndMoveFiles at ', Date());
 
     /**************************************
      Response and error handling variables
@@ -58,17 +58,17 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     ************************/
 
     // Name of the parameter that contains the source folder name
-    const sourcePathParamName = "Source Folder";
+    const sourcePathParamName = 'Source Folder';
     // Name of the parameter that contains the target folder name
-    const targetPathParamName = "Target Folder";
+    const targetPathParamName = 'Target Folder';
     // Name of the groups that will have permissions set in the folder.
-    const permissionGroupsParamName = "permissionGroups";
+    const permissionGroupsParamName = 'permissionGroups';
     // Coma separated email addresses to send error log to after the script is finished.
-    const errorEmailList = "emanuel.jofre@onetree.com";
+    const errorEmailList = 'emanuel.jofre@onetree.com';
     // Text to be added to the subject of the error log email.
-    const emailSubject = "Errors generated during new Plaidsoft registration " + new Date().toLocaleString();
+    const emailSubject = 'Errors generated during new Plaidsoft registration ' + new Date().toLocaleString();
     // Text to be added to the intro of the error log email.
-    const emailIntro = "The following errors or messages were logged while processing the folders and documents for a new user: \n\n";
+    const emailIntro = 'The following errors or messages were logged while processing the folders and documents for a new user: \n\n';
 
     /*****************
      Helper Functions
@@ -94,7 +94,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
                 // If the field was found, get its value
                 let fieldValue = field.value ? field.value : null;
 
-                if (typeof fieldValue === "string") {
+                if (typeof fieldValue === 'string') {
                     // Remove any leading or trailing spaces
                     fieldValue.trim();
                 }
@@ -126,7 +126,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
             // Parses the response in case it's a JSON string
             const jsObject = JSON.parse(res);
             // Handle non-exception-throwing cases:
-            if (jsObject && typeof jsObject === "object") {
+            if (jsObject && typeof jsObject === 'object') {
                 res = jsObject;
             }
         } catch (e) {
@@ -151,7 +151,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
 
         // If the status is not the expected one, throw an error
         if (status !== 200 && status !== 201 && status !== ignoreStatusCode) {
-            const errorReason = vvClientRes.meta.errors && vvClientRes.meta.errors[0] ? vvClientRes.meta.errors[0].reason : "unspecified";
+            const errorReason = vvClientRes.meta.errors && vvClientRes.meta.errors[0] ? vvClientRes.meta.errors[0].reason : 'unspecified';
             throw new Error(`${shortDescription}. Status: ${vvClientRes.meta.status}. Reason: ${errorReason}`);
         }
         return vvClientRes;
@@ -189,7 +189,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
 
         if (status != ignoreStatusCode) {
             const dataIsArray = Array.isArray(vvClientRes.data);
-            const dataIsObject = typeof vvClientRes.data === "object";
+            const dataIsObject = typeof vvClientRes.data === 'object';
             const isEmptyArray = dataIsArray && vvClientRes.data.length == 0;
             const isEmptyObject = dataIsObject && Object.keys(vvClientRes.data).length == 0;
 
@@ -201,32 +201,13 @@ module.exports.main = async function (ffCollection, vvClient, response) {
             if (dataIsArray) {
                 const firstValue = vvClientRes.data[0];
 
-                if (firstValue == "Error") {
+                if (firstValue == 'Error') {
                     throw new Error(`${shortDescription} returned an error. Please, check called Web Service. Status: ${status}.`);
                 }
             }
         }
 
         return vvClientRes;
-    }
-
-    async function getFolderID(folderPath) {
-        const ignoreStatusCode = 403; // 403 is returned when the folder doesn't exist
-        const shortDescription = `Get folder '${folderPath}'`;
-
-        const getFolderParams = {
-            folderPath: folderPath,
-        };
-
-        const getFolderRes = await vvClient.library
-            .getFolders(getFolderParams)
-            .then((res) => parseRes(res))
-            .then((res) => checkMetaAndStatus(res, shortDescription, ignoreStatusCode))
-            .then((res) => checkDataPropertyExists(res, shortDescription, ignoreStatusCode));
-
-        const folderID = getFolderRes.data ? getFolderRes.data.id : null;
-
-        return folderID;
     }
 
     async function createFolder(folderPath) {
@@ -244,83 +225,6 @@ module.exports.main = async function (ffCollection, vvClient, response) {
         const newFolderID = postFolderResp.data.id;
 
         return newFolderID;
-    }
-
-    async function getFolderPermissionMembersIDs(folderId) {
-        let securityMemberIDs = [];
-        const shortDescription = `Security member IDs for Folder ID '${folderId}'`;
-
-        let getFolderSecurityResp = await vvClient.library
-            .getFolderSecurityMembers(null, folderId)
-            .then((res) => parseRes(res))
-            .then((res) => checkMetaAndStatus(res, shortDescription))
-            .then((res) => checkDataPropertyExists(res, shortDescription));
-
-        // Data could be empty, meaning no permissions are currently set for the folder
-        if (getFolderSecurityResp.data.length > 0) {
-            securityMemberIDs = getFolderSecurityResp.data.map((member) => member.memberId);
-        }
-
-        return securityMemberIDs;
-    }
-
-    async function deleteFolderPermissions(folderId, membersIDs = []) {
-        // Wait for every permission to be deleted
-        let res = await Promise.all(
-            // Delete every permission in the memberIDs array
-            membersIDs.map(async (memberID) => {
-                const ignoreStatusCode = 400; // 400 is returned when the folder has no permissions set
-                const shortDescription = `Delete Folder Permissions for Member ID '${memberID}'`;
-
-                return await vvClient.library
-                    .deleteFolderSecurityMember(folderId, memberID, true)
-                    .then((res) => parseRes(res))
-                    .then((res) => checkMetaAndStatus(res, shortDescription, ignoreStatusCode))
-                    .then((res) => checkDataPropertyExists(res, shortDescription, ignoreStatusCode))
-                    .then((res) => checkDataIsNotEmpty(res, shortDescription, ignoreStatusCode));
-            })
-        );
-
-        return res;
-    }
-
-    async function setGroupsFolderSecurity(folderId, groups) {
-        // Wait for every new permission to be set
-        const res = await Promise.all(
-            // Set permission to every group in the groups array
-            groups.map(async (group) => {
-                const shortDescription = `Set Folder '${folderId}' Security for Group '${group}'`;
-
-                const groupParam = {
-                    q: `name eq '${group}'`,
-                    fields: "id,name,description",
-                };
-
-                // Gets the group ID
-                let groupResp = await vvClient.groups
-                    .getGroups(groupParam)
-                    .then((res) => parseRes(res))
-                    .then((res) => checkMetaAndStatus(res, shortDescription))
-                    .then((res) => checkDataPropertyExists(res, shortDescription))
-                    .then((res) => checkDataIsNotEmpty(res, shortDescription));
-
-                const memType = vvClient.constants.securityMemberType["Group"];
-                const role = vvClient.constants.securityRoles["Editor"];
-                const groupID = groupResp.data[0].id;
-
-                // Sets the permissions for the group
-                let putFolderSecurityResp = await vvClient.library
-                    .putFolderSecurityMember(folderId, groupID, memType, role, true)
-                    .then((res) => parseRes(res))
-                    .then((res) => checkMetaAndStatus(res, shortDescription))
-                    .then((res) => checkDataPropertyExists(res, shortDescription))
-                    .then((res) => checkDataIsNotEmpty(res, shortDescription));
-
-                return putFolderSecurityResp.data;
-            })
-        );
-
-        return res;
     }
 
     async function getDocumentsData(folderPath) {
@@ -346,69 +250,13 @@ module.exports.main = async function (ffCollection, vvClient, response) {
         return getDocsResp.data ? getDocsResp.data : [];
     }
 
-    async function copyFile(docData, targetFolderID) {
-        let shortDescription = `Copy File ${docData.name}`;
-        let fileBytes;
-        let docArgs;
-
-        return vvClient.files
-            .getFileBytesId(docData.id)
-            .then((buffer) => {
-                // 1. Gets the file bytes
-                fileBytes = buffer;
-
-                if (!fileBytes) {
-                    throw new Error(`Could not get file bytes '${docData.id}'`);
-                }
-            })
-            .then(() => {
-                // 2. Create a new placeholder document
-                docArgs = {
-                    documentState: 1,
-                    name: `${docData.fileName.split(".")[0]}`,
-                    description: `${docData.description}`,
-                    revision: "0",
-                    allowNoFile: true,
-                    fileLength: 0,
-                    fileName: `${docData.fileName}`,
-                    indexFields: "{}",
-                    folderId: `${targetFolderID}`,
-                };
-
-                return vvClient.documents.postDoc(docArgs);
-            })
-            .then((res) => parseRes(res))
-            .then((res) => checkMetaAndStatus(res, shortDescription))
-            .then((res) => checkDataPropertyExists(res, shortDescription))
-            .then((res) => checkDataIsNotEmpty(res, shortDescription))
-            .then((postDocResp) => {
-                // 3. Uploads the file bytes to the new placeholder document
-                const fileParams = {
-                    documentId: postDocResp.data.id,
-                    name: postDocResp.data.name,
-                    revision: "1",
-                    changeReason: "",
-                    checkInDocumentState: "Released",
-                    fileName: `${postDocResp.data.fileName}`,
-                    indexFields: "{}",
-                };
-
-                return vvClient.files.postFile(fileParams, fileBytes);
-            })
-            .then((res) => parseRes(res))
-            .then((res) => checkMetaAndStatus(res, shortDescription))
-            .then((res) => checkDataPropertyExists(res, shortDescription))
-            .then((res) => checkDataIsNotEmpty(res, shortDescription))
-            .then((postFileResp) => postFileResp.data);
-    }
-
     async function sendErrorLogEmail() {
         //This function sends an error log email. See configurable variables for settings.
         let body = emailIntro;
 
         for (let errorItem of errorLog) {
             //Generate the body of the email.
-            body += "<li>" + errorItem + "</li>";
+            body += '<li>' + errorItem + '</li>';
         }
 
         const emailData = {
@@ -432,50 +280,35 @@ module.exports.main = async function (ffCollection, vvClient, response) {
         // 1. Checks if the required paramenters are present
         if (!sourcePath || !targetPath) {
             // It could be more than one error, so we need to send all of them in one response
-            throw new Error(errorLog.join("; "));
+            throw new Error(errorLog.join('; '));
         }
-
-        // // If permissions groups were sent, set them
-        // if (permissionGroups) {
-        //     // Gets folder's current permissions settings
-        //     const folderPermissionsIDs = await getFolderPermissionMembersIDs(folderId);
-
-        //     // Deletes current members with permissions
-        //     // This is because we can only ADD new permissions
-        //     if (folderPermissionsIDs.length > 0) {
-        //         await deleteFolderPermissions(folderId, folderPermissionsIDs);
-        //     }
-
-        //     // Sets new permissions to the folder
-        //     await setGroupsFolderSecurity(folderId, permissionGroups);
-        // }
 
         // 2. Gets the source folder documents ids
         const sourceDocsData = await getDocumentsData(sourcePath);
 
         // 3. Create a folder for each document
-        await Promise.all(sourceDocsData.map(async document => {
-          const newFolderId =  await createFolder(`${targetPath}/${document.name}`);
+        await Promise.all(
+            sourceDocsData.map(async (document) => {
+                const newFolderId = await createFolder(`${targetPath}/${document.name}`);
 
-            // 4. Moves each document to its folder
-            let moveDocumentData = {
-            folderId: newFolderId
-            };
+                // 4. Moves each document to its folder
+                let moveDocumentData = {
+                    folderId: newFolderId,
+                };
 
-            await vvClient.documents.moveDocument(null, moveDocumentData, document.documentId);
-        
-        }));
+                await vvClient.documents.moveDocument(null, moveDocumentData, document.documentId);
+            })
+        );
 
         // 5. Builds the success response array
-        outputCollection[0] = "Success";
-        outputCollection[1] = "Create and Move Process Complete";
-
+        outputCollection[0] = 'Success';
+        outputCollection[1] = 'Create and Move Process Complete';
     } catch (err) {
         errorLog.push(err.message ? err.message : err);
         logger.info(JSON.stringify(errorLog));
 
         // Builds the error response array
-        outputCollection[0] = "Error";
+        outputCollection[0] = 'Error';
         outputCollection[1] = err.message ? err.message : err;
     } finally {
         // 6. Sends email with errors

@@ -1,15 +1,15 @@
-const logger = require("../log");
+const logger = require('../log');
 
 module.exports.getCredentials = function () {
     var options = {};
-        options.customerAlias = "SATrainingMarch2022";
-        options.databaseAlias = "Main";
-        options.userId = "training.api";
-        options.password = "p";
-        options.clientId = "bafd938d-6864-472c-9309-2b515bbf1007";
-        options.clientSecret = "rbQR7pXabAUts/lp5sczrbb5C2L/kF4EcOdF+OkPg68=";
-        return options;
-    };
+    options.customerAlias = 'SATrainingMarch2022';
+    options.databaseAlias = 'Main';
+    options.userId = 'training.api';
+    options.password = 'p';
+    options.clientId = 'bafd938d-6864-472c-9309-2b515bbf1007';
+    options.clientSecret = 'rbQR7pXabAUts/lp5sczrbb5C2L/kF4EcOdF+OkPg68=';
+    return options;
+};
 
 module.exports.main = async function (ffCollection, vvClient, response) {
     /* 
@@ -40,7 +40,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     06/21/2022 - Federico Cuelho: Modified to create folders and move docs into created folders.
     */
 
-    logger.info("Start of the process CreateFoldersAndMoveFiles at ", Date());
+    logger.info('Start of the process CreateFoldersAndMoveFiles at ', Date());
 
     /**************************************
      Response and error handling variables
@@ -58,17 +58,17 @@ module.exports.main = async function (ffCollection, vvClient, response) {
     ************************/
 
     // Name of the parameter that contains the source folder name
-    const sourcePathParamName = "Source Folder";
+    const sourcePathParamName = 'Source Folder';
     // Name of the parameter that contains the target folder name
-    const targetPathParamName = "Target Folder";
+    const targetPathParamName = 'Target Folder';
     // Name of the groups that will have permissions set in the folder.
-    const permissionGroupsParamName = "permissionGroups";
+    const permissionGroupsParamName = 'permissionGroups';
     // Coma separated email addresses to send error log to after the script is finished.
-    const errorEmailList = "emanuel.jofre@onetree.com";
+    const errorEmailList = 'emanuel.jofre@onetree.com';
     // Text to be added to the subject of the error log email.
-    const emailSubject = "Errors generated during new Plaidsoft registration " + new Date().toLocaleString();
+    const emailSubject = 'Errors generated during new Plaidsoft registration ' + new Date().toLocaleString();
     // Text to be added to the intro of the error log email.
-    const emailIntro = "The following errors or messages were logged while processing the folders and documents for a new user: \n\n";
+    const emailIntro = 'The following errors or messages were logged while processing the folders and documents for a new user: \n\n';
 
     /*****************
      Helper Functions
@@ -94,7 +94,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
                 // If the field was found, get its value
                 let fieldValue = field.value ? field.value : null;
 
-                if (typeof fieldValue === "string") {
+                if (typeof fieldValue === 'string') {
                     // Remove any leading or trailing spaces
                     fieldValue.trim();
                 }
@@ -126,7 +126,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
             // Parses the response in case it's a JSON string
             const jsObject = JSON.parse(res);
             // Handle non-exception-throwing cases:
-            if (jsObject && typeof jsObject === "object") {
+            if (jsObject && typeof jsObject === 'object') {
                 res = jsObject;
             }
         } catch (e) {
@@ -151,7 +151,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
 
         // If the status is not the expected one, throw an error
         if (status !== 200 && status !== 201 && status !== ignoreStatusCode) {
-            const errorReason = vvClientRes.meta.errors && vvClientRes.meta.errors[0] ? vvClientRes.meta.errors[0].reason : "unspecified";
+            const errorReason = vvClientRes.meta.errors && vvClientRes.meta.errors[0] ? vvClientRes.meta.errors[0].reason : 'unspecified';
             throw new Error(`${shortDescription}. Status: ${vvClientRes.meta.status}. Reason: ${errorReason}`);
         }
         return vvClientRes;
@@ -189,7 +189,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
 
         if (status != ignoreStatusCode) {
             const dataIsArray = Array.isArray(vvClientRes.data);
-            const dataIsObject = typeof vvClientRes.data === "object";
+            const dataIsObject = typeof vvClientRes.data === 'object';
             const isEmptyArray = dataIsArray && vvClientRes.data.length == 0;
             const isEmptyObject = dataIsObject && Object.keys(vvClientRes.data).length == 0;
 
@@ -201,7 +201,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
             if (dataIsArray) {
                 const firstValue = vvClientRes.data[0];
 
-                if (firstValue == "Error") {
+                if (firstValue == 'Error') {
                     throw new Error(`${shortDescription} returned an error. Please, check called Web Service. Status: ${status}.`);
                 }
             }
@@ -293,7 +293,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
 
                 const groupParam = {
                     q: `name eq '${group}'`,
-                    fields: "id,name,description",
+                    fields: 'id,name,description',
                 };
 
                 // Gets the group ID
@@ -304,8 +304,8 @@ module.exports.main = async function (ffCollection, vvClient, response) {
                     .then((res) => checkDataPropertyExists(res, shortDescription))
                     .then((res) => checkDataIsNotEmpty(res, shortDescription));
 
-                const memType = vvClient.constants.securityMemberType["Group"];
-                const role = vvClient.constants.securityRoles["Editor"];
+                const memType = vvClient.constants.securityMemberType['Group'];
+                const role = vvClient.constants.securityRoles['Editor'];
                 const groupID = groupResp.data[0].id;
 
                 // Sets the permissions for the group
@@ -350,7 +350,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
 
         // Moves each document to a target folder
         let moveDocumentData = {
-            folderId: targetFolderID
+            folderId: targetFolderID,
         };
 
         return vvClient.documents
@@ -380,13 +380,13 @@ module.exports.main = async function (ffCollection, vvClient, response) {
                 // 2. Create a new placeholder document
                 docArgs = {
                     documentState: 1,
-                    name: `${docData.fileName.split(".")[0]}`,
+                    name: `${docData.fileName.split('.')[0]}`,
                     description: `${docData.description}`,
-                    revision: "0",
+                    revision: '0',
                     allowNoFile: true,
                     fileLength: 0,
                     fileName: `${docData.fileName}`,
-                    indexFields: "{}",
+                    indexFields: '{}',
                     folderId: `${targetFolderID}`,
                 };
 
@@ -401,11 +401,11 @@ module.exports.main = async function (ffCollection, vvClient, response) {
                 const fileParams = {
                     documentId: postDocResp.data.id,
                     name: postDocResp.data.name,
-                    revision: "1",
-                    changeReason: "",
-                    checkInDocumentState: "Released",
+                    revision: '1',
+                    changeReason: '',
+                    checkInDocumentState: 'Released',
                     fileName: `${postDocResp.data.fileName}`,
-                    indexFields: "{}",
+                    indexFields: '{}',
                 };
 
                 return vvClient.files.postFile(fileParams, fileBytes);
@@ -423,7 +423,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
 
         for (let errorItem of errorLog) {
             //Generate the body of the email.
-            body += "<li>" + errorItem + "</li>";
+            body += '<li>' + errorItem + '</li>';
         }
 
         const emailData = {
@@ -447,7 +447,7 @@ module.exports.main = async function (ffCollection, vvClient, response) {
         // 1. Checks if the required paramenters are present
         if (!sourcePath || !targetPath) {
             // It could be more than one error, so we need to send all of them in one response
-            throw new Error(errorLog.join("; "));
+            throw new Error(errorLog.join('; '));
         }
 
         // // If permissions groups were sent, set them
@@ -469,24 +469,24 @@ module.exports.main = async function (ffCollection, vvClient, response) {
         const sourceDocsData = await getDocumentsData(sourcePath);
 
         // 3. Create a folder for each document
-        await Promise.all(sourceDocsData.map(async document => {
-          const newFolderId =  await createFolder(`${targetPath}/${document.name}`);
-          
-          // 4. Moves each document to a target folder
-          const moveDocResp = await moveFiles(document, newFolderId);
-        
-        }));
+        await Promise.all(
+            sourceDocsData.map(async (document) => {
+                const newFolderId = await createFolder(`${targetPath}/${document.name}`);
+
+                // 4. Moves each document to a target folder
+                return await moveFiles(document, newFolderId);
+            })
+        );
 
         // 5. Builds the success response array
-        outputCollection[0] = "Success";
-        outputCollection[1] = "Create and Move Process Complete";
-
+        outputCollection[0] = 'Success';
+        outputCollection[1] = 'Create and Move Process Complete';
     } catch (err) {
         errorLog.push(err.message ? err.message : err);
         logger.info(JSON.stringify(errorLog));
 
         // Builds the error response array
-        outputCollection[0] = "Error";
+        outputCollection[0] = 'Error';
         outputCollection[1] = err.message ? err.message : err;
     } finally {
         // 6. Sends email with errors
